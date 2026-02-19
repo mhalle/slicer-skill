@@ -1,0 +1,5 @@
+# Ignore directories created by setup.sh
+slicer-source
+slicer-extensions
+slicer-dependencies
+slicer-discourse
