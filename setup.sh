@@ -7,6 +7,7 @@ set -euo pipefail
 : "${SLICER_SRC_DIR:=slicer-source}"
 : "${SLICER_EXT_DIR:=slicer-extensions}"
 : "${SLICER_DISCOURSE_DIR:=slicer-discourse}"
+: "${SLICER_DEP_DIR:=slicer-dependencies}"
 
 # optional filter: space-separated list of extension names to fetch.  Leave empty to
 # clone everything.
@@ -27,22 +28,188 @@ clone_or_pull() {
 # 1. main Slicer source
 clone_or_pull "https://github.com/Slicer/Slicer.git" "$SLICER_SRC_DIR"
 
+# 1b. clone SuperBuild/build dependency repositories referenced in Slicer's CMake
+clone_superbuild_deps() {
+    local base="$SLICER_SRC_DIR"
+    local outdir="$SLICER_DEP_DIR"
+    mkdir -p "$outdir"
+    declare -A seen
+
+    normalize_repo() {
+        local repo="$1"
+        # strip surrounding quotes
+        repo="${repo%\"}"
+        repo="${repo#\"}"
+        # replace ${EP_GIT_PROTOCOL}:// and $EP_GIT_PROTOCOL:// with https://
+        repo="${repo//\$\{EP_GIT_PROTOCOL\}:\/\//https://}"
+        repo="${repo//\$EP_GIT_PROTOCOL:\/\//https://}"
+        # replace ${EP_GIT_PROTOCOL} or $EP_GIT_PROTOCOL with https
+        repo="${repo//\$\{EP_GIT_PROTOCOL\}/https}"
+        repo="${repo//\$EP_GIT_PROTOCOL/https}"
+        echo "$repo"
+    }
+
+    files_to_scan=()
+    [ -f "$base/CMakeLists.txt" ] && files_to_scan+=("$base/CMakeLists.txt")
+    [ -f "$base/SuperBuild.cmake" ] && files_to_scan+=("$base/SuperBuild.cmake")
+    if [ -d "$base/Utilities/Templates/Extensions/SuperBuild/SuperBuild" ]; then
+        while IFS= read -r -d $'\0' f; do files_to_scan+=("$f"); done < <(find "$base/Utilities/Templates/Extensions/SuperBuild/SuperBuild" -type f -name "*.cmake" -print0)
+    fi
+    if [ -d "$base/SuperBuild" ]; then
+        while IFS= read -r -d $'\0' f; do files_to_scan+=("$f"); done < <(find "$base/SuperBuild" -type f -name "*.cmake" -print0)
+    fi
+
+    # Parse SuperBuild files for ExternalProject_SetIfNotDefined and simple set(...) vars
+    declare -A cmake_vars
+        for sf in "${files_to_scan[@]}"; do
+                perl -0777 -ne '
+                    my %set=();
+                    while(/set\(\s*([A-Za-z0-9_]+)\s+(?:"([^"]+)"|([^\)\s#]+))/g){ $set{$1}= defined $2 ? $2 : $3 }
+                    for my $k (keys %set) { print "$k|$set{$k}\n" }
+                    while(/ExternalProject_SetIfNotDefined\(\s*([^\s\)]+)\s*(?:"([^"]+)"|([^\)\s#]+))/g){
+                        $var=$1; $val = defined $2 ? $2 : $3;
+                        $var2 = $var;
+                        $var2 =~ s/\$\{([A-Za-z0-9_]+)\}/ (defined $set{$1} ? $set{$1} : "\$\{$1\}") /ge;
+                        print "$var2|$val\n";
+                    }
+                ' "$sf" | while IFS='|' read -r v val; do
+                        if [ -n "$v" ] && [ -n "$val" ]; then
+                                cmake_vars["$v"]="$val"
+                        fi
+                done
+        done
+
+        for file in "${files_to_scan[@]}"; do
+                perl -0777 -ne '
+                    while(/GIT_REPOSITORY\s+(?:"([^"]+)"|([^ \t#\n]+))/g) {
+                        $repo = defined $1 ? $1 : $2;
+                        $rest = substr($_, pos());
+                        $tag = "";
+                        if($rest =~ /GIT_TAG\s+(?:"([^"]+)"|([^ \t#\n]+))/) { $tag = defined $1 ? $1 : $2 }
+                        print "$repo|$tag\n";
+                    }
+                ' "$file" | while IFS='|' read -r repo tag; do
+                    repo=$(normalize_repo "$repo")
+                    # resolve variable-based repo names from parsed SuperBuild vars
+                    if [[ "$repo" == *'${'* ]]; then
+                        # replace ${VAR} with value when known
+                        tmp="$repo"
+                        while [[ "$tmp" =~ \$\{([A-Za-z0-9_]+)\} ]]; do
+                            key=${BASH_REMATCH[1]}
+                            val=${cmake_vars[$key]:-}
+                            if [ -z "$val" ]; then break; fi
+                            tmp=${tmp//\$\{$key\}/$val}
+                        done
+                        repo="$tmp"
+                    fi
+                    if [ -z "$repo" ] || [[ "$repo" == *'${'* ]]; then
+                continue
+            fi
+                    # skip tokens that are not URL-like (e.g. single words like 'and')
+                    if [[ "$repo" != *"/"* ]]; then
+                        continue
+                    fi
+            name=$(basename "$repo" .git)
+            if [ -z "$name" ]; then
+                continue
+            fi
+            if [ -n "${seen[$repo]:-}" ]; then
+                continue
+            fi
+            seen[$repo]=1
+            dest="$outdir/$name"
+            if [ -d "$dest/.git" ]; then
+                echo "Updating dependency $name..."
+                git -C "$dest" pull --ff-only || true
+            else
+                echo "Cloning dependency $repo -> $dest"
+                    # resolve tag variables from parsed SuperBuild vars
+                    if [[ "$tag" == *'${'* ]]; then
+                        tmp_tag="$tag"
+                        while [[ "$tmp_tag" =~ \$\{([A-Za-z0-9_]+)\} ]]; do
+                            k=${BASH_REMATCH[1]}; v=${cmake_vars[$k]:-}; if [ -z "$v" ]; then break; fi
+                            tmp_tag=${tmp_tag//\$\{$k\}/$v}
+                        done
+                        tag="$tmp_tag"
+                    fi
+                    if [ -n "$tag" ] && [[ "$tag" != *'${'* ]] && [[ "$tag" != *\$* ]]; then
+                    # try shallow clone by tag/branch first; fall back to full clone
+                    if ! git clone --depth 1 --branch "$tag" "$repo" "$dest" 2>/dev/null; then
+                        git clone "$repo" "$dest" || true
+                        # ensure we have remote refs/tags and retry checkout of the requested tag/sha
+                        if [ -d "$dest/.git" ]; then
+                            git -C "$dest" fetch --all --tags --prune 2>/dev/null || true
+                            git -C "$dest" -c advice.detachedHead=false checkout "$tag" 2>/dev/null || true
+                        fi
+                    fi
+                else
+                    git clone --depth 1 "$repo" "$dest" || true
+                    if [ -n "$tag" ] && [ -d "$dest/.git" ] && [[ "$tag" != *'${'* ]] && [[ "$tag" != *\$* ]]; then
+                        git -C "$dest" fetch --all --tags --prune 2>/dev/null || true
+                        git -C "$dest" -c advice.detachedHead=false checkout "$tag" 2>/dev/null || true
+                    fi
+                fi
+            fi
+        done
+    done
+
+    # Special-case: resolve VTK _git_tag based on default VTK version from top-level CMakeLists
+    if [ -f "$base/CMakeLists.txt" ] && [ -f "$base/SuperBuild/External_VTK.cmake" ]; then
+        default_major=$(grep -Po 'set\(_default_vtk_major_version\s+"?\K[0-9]+' "$base/CMakeLists.txt" || true)
+        default_minor=$(grep -Po 'set\(_default_vtk_minor_version\s+"?\K[0-9]+' "$base/CMakeLists.txt" || true)
+        if [ -n "$default_major" ] && [ -n "$default_minor" ]; then
+            want="${default_major}.${default_minor}"
+            vtk_tag=$(perl -0777 -ne '
+              $want = shift; if(/if\([^)]*STREQUAL\s+"\Q$want\E"\)(.*?)((?:elseif|else|endif)|$)/s){ $blk=$1; if($blk=~ /set\(\s*_git_tag\s+"([^"]+)"/){ print $1 } }
+            ' "$want" "$base/SuperBuild/External_VTK.cmake" 2>/dev/null || true)
+            if [ -n "$vtk_tag" ]; then
+                cmake_vars["_git_tag"]="$vtk_tag"
+            fi
+        fi
+    fi
+}
+
+clone_superbuild_deps
+
 # 2. extensions index
 clone_or_pull "https://github.com/Slicer/ExtensionsIndex.git" "$SLICER_EXT_DIR"
 
 # iterate over all index files and clone referenced repos
 if [ -d "$SLICER_EXT_DIR" ]; then
     echo "Processing extensions index..."
-    find "$SLICER_EXT_DIR" -name "*.json" | while read file; do
-        repo=$(grep -Po '"git_repo"\s*:\s*"\K[^"]+' "$file" || true)
+    tmpfile=$(mktemp)
+    trap 'rm -f "$tmpfile"' EXIT
+    # collect repo|name pairs as NUL-separated entries
+    find "$SLICER_EXT_DIR" -name "*.json" -print0 | while IFS= read -r -d '' file; do
+        repo=$(grep -Po '"scm_url"\s*:\s*"\K[^\"]+' "$file" || true)
         if [ -n "$repo" ]; then
             name=$(basename "$repo" .git)
             if [ -n "$EXTENSION_FILTER" ] && ! [[ " $EXTENSION_FILTER " =~ " $name " ]]; then
                 continue
             fi
-            clone_or_pull "$repo" "$SLICER_EXT_DIR/$name"
+            printf '%s|%s\0' "$repo" "$name" >> "$tmpfile"
         fi
     done
+
+    # determine parallelism: use `nproc * 4` (for better network utilization),
+    # ensure at least 6 jobs and cap at 16
+    nproc_val=$(nproc 2>/dev/null || echo 1)
+    jobs=$(( nproc_val * 4 ))
+    if [ "$jobs" -lt 6 ]; then jobs=6; fi
+    if [ "$jobs" -gt 16 ]; then jobs=16; fi
+
+    # worker: update or clone each repo in parallel
+    if [ -s "$tmpfile" ]; then
+        cat "$tmpfile" | xargs -0 -n1 -P "$jobs" sh -c '
+            pair="$1"; url=${pair%%|*}; name=${pair#*|}; dest="'"$SLICER_EXT_DIR"'"/"$name"; 
+            if [ -d "$dest/.git" ]; then
+                echo "Updating $dest..."; git -C "$dest" pull --ff-only || true; 
+            else
+                echo "Cloning $url -> $dest"; git clone --depth 1 "$url" "$dest" || true; 
+            fi
+        ' sh
+    fi
+    rm -f "$tmpfile"
 fi
 
 # 3. discourse archive
