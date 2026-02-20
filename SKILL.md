@@ -305,6 +305,41 @@ The `slicer` Python package is the primary API for scripting.  To understand it:
 - Read `slicer-source/Base/Python/slicer/__init__.py` for the top-level namespace
   (access to `slicer.mrmlScene`, `slicer.app`, `slicer.modules`, etc.).
 
+### Coding Style and Conventions
+
+Slicer spans multiple toolkits, each with its own style.  To understand what conventions
+to follow:
+
+- Read `slicer-source/Docs/developer_guide/style_guide.md` — the primary style reference.
+  It links to the VTK, Qt, and Python (PEP 8) conventions and explains when each applies.
+- Read `slicer-source/CONTRIBUTING.md` for contribution guidelines.
+- For Python style in Slicer modules specifically, examine existing scripted modules
+  (e.g. `Modules/Scripted/SegmentStatistics/`) — they demonstrate Slicer naming
+  conventions such as `onApplyButton`, `setParameterNode`, camelCase method names
+  on widget classes, and the `logic`/`widget`/`test` class separation.
+- For C++ style, browse `.cxx`/`.h` files in `Modules/Loadable/` and follow the VTK
+  conventions: `vtkNew`, `vtkSmartPointer`, `SetX()`/`GetX()` accessors, and the
+  `PrintSelf`/`Modified()` pattern.
+
+### Testing
+
+To understand how Slicer modules are tested:
+
+- Each scripted module can include a test class derived from
+  `ScriptedLoadableModuleTest` (defined in
+  `slicer-source/Base/Python/slicer/ScriptedLoadableModule.py`).  The standard pattern
+  is a `runTest()` method that calls individual test functions.
+- See `slicer-source/Modules/Scripted/SegmentStatistics/Testing/` and
+  `slicer-source/Modules/Scripted/SampleData/Testing/` for Python test examples.
+- See `slicer-source/Modules/Scripted/SelfTests/` for the self-test runner module.
+- For C++ module tests, browse `Testing/` subdirectories under modules in
+  `Modules/Loadable/` — these use CTest and Google Test patterns.
+- Read `slicer-source/Docs/developer_guide/debugging/` for debugging guides across
+  platforms and IDEs (VS Code, Qt Creator, CLion, etc.).
+- Read `slicer-source/Docs/developer_guide/python_faq.md` for common Python
+  environment questions including `PythonSlicer`, virtual environments, and
+  package installation.
+
 ### Discourse Archive — Searching Community Knowledge
 
 The discourse archive contains ~18,700 rendered forum topics organized by year and month:
@@ -355,6 +390,42 @@ code alone**.  The agent should be aware of them when generating or reviewing Sl
 
 ---
 
+## Common Workflows — Where to Find Each Step
+
+Many Slicer tasks span multiple subsystems.  Rather than documenting full workflows here,
+this section tells you which script repository files and source directories to consult
+for each step of common multi-step tasks.
+
+**Load DICOM data, segment a structure, export the result:**
+1. DICOM import — `script_repository/dicom.md`
+2. Segmentation — `script_repository/segmentations.md`
+3. Export to STL/OBJ/NRRD — search `script_repository/segmentations.md` for "export"
+   and `script_repository/models.md` for surface mesh saving
+
+**Create a new scripted module from scratch:**
+1. Scaffolding — `slicer-source/Modules/Scripted/ExtensionWizard/`
+2. Module pattern — `slicer-source/Modules/Scripted/SampleData/` as a template
+3. Parameter node wrapper — `slicer-source/Base/Python/slicer/parameterNodeWrapper/`
+4. Testing — `slicer-source/Modules/Scripted/SegmentStatistics/Testing/`
+
+**Add a custom Segment Editor effect:**
+1. Base class API — `AbstractScriptedSegmentEditorEffect.py` in
+   `Modules/Loadable/Segmentations/EditorEffects/Python/SegmentEditorEffects/`
+2. Example effects — other `SegmentEditor*Effect.py` files in the same directory
+3. Registration — search `slicer-source` for `registerEditorEffect`
+
+**Build Slicer or an extension from source:**
+1. Build instructions — `slicer-source/Docs/developer_guide/build_instructions/`
+2. SuperBuild dependencies — `slicer-source/SuperBuild/External_*.cmake`
+3. Extension build — `slicer-source/Docs/developer_guide/extensions.md`
+
+**Work with transforms and coordinate systems:**
+1. Transform examples — `script_repository/transforms.md`
+2. RAS/LPS conventions — search `slicer-source/Docs/` for "coordinate" or "RAS"
+3. Transform node API — `slicer-source/Libs/MRML/Core/vtkMRMLTransformNode.h`
+
+---
+
 ## Extending the Skill
 
 Additional data sources can be added by editing `setup.sh` and updating this document.
@@ -363,6 +434,47 @@ extended to clone that repository and document its purpose here.
 
 Agents that understand the SKILLS.md format should parse this file and use its sections to
 bootstrap their reasoning about how to prepare and query the environment.
+
+### Design Principles
+
+This skill was designed with specific trade-offs in mind.  Future contributors (human
+or agent) should follow these principles when extending it:
+
+1. **Prefer pointers to copies.**  This file directs the agent to read specific files
+   in the checked-out repositories rather than embedding code snippets or API
+   documentation inline.  The Slicer source tree, script repository, and developer
+   guide are the single source of truth — duplicating their content here would create
+   version skew as Slicer evolves.  Pointers cost one extra file-read per query but
+   are always accurate.
+
+2. **Be specific with pointers.**  Vague references ("look in the source") force
+   expensive open-ended searches.  Every pointer should name a concrete file or
+   directory path and, where helpful, suggest a grep pattern or section heading.
+   The agent should be able to resolve any pointer with a single Read or Grep
+   operation.
+
+3. **Inline only what cannot be discovered.**  The "Common Pitfalls" section is the
+   intentional exception to the pointers-over-copies rule.  Pitfalls like RAS/LPS
+   sign flips and KJI axis ordering live in the gap between the code and how people
+   misuse it — they are not documented in any single source file and are not
+   discoverable by code search.  New pitfalls should be added here only when they
+   meet this bar.
+
+4. **Keep the file under 500 lines.**  The Agent Skills convention recommends concise
+   skill files to avoid overwhelming the agent's context window.  If this file
+   approaches the limit, move detailed content to supporting files in a `references/`
+   directory and link to them from here.
+
+5. **Stay agent-agnostic.**  This skill targets any agent that understands the
+   SKILLS.md convention (Claude Code, OpenAI agents, Codex, Cursor, etc.).  Avoid
+   features specific to a single agent runtime.  The frontmatter uses only fields
+   from the open Agent Skills standard.
+
+6. **Leverage all four data sources.**  The unique strength of this skill is the
+   combination of source code, extensions, dependencies, and community discussions.
+   When adding new sections, consider whether the agent should cross-reference
+   multiple sources — for example, a discourse search may explain *why* something
+   works a certain way when the source code only shows *how*.
 
 ---
 
