@@ -119,7 +119,7 @@ clone_superbuild_deps() {
                         tmp="$repo"
                         while [[ "$tmp" =~ \$\{([A-Za-z0-9_]+)\} ]]; do
                             key=${BASH_REMATCH[1]}
-                            val=${cmake_vars[$key]:-}
+                            val=$(get_cmake_var "$key")
                             if [ -z "$val" ]; then break; fi
                             tmp=${tmp//\$\{$key\}/$val}
                         done
@@ -185,7 +185,7 @@ clone_superbuild_deps() {
               $want = shift; if(/if\([^)]*STREQUAL\s+"\Q$want\E"\)(.*?)((?:elseif|else|endif)|$)/s){ $blk=$1; if($blk=~ /set\(\s*_git_tag\s+"([^"]+)"/){ print $1 } }
             ' "$want" "$base/SuperBuild/External_VTK.cmake" 2>/dev/null || true)
             if [ -n "$vtk_tag" ]; then
-                cmake_vars["_git_tag"]="$vtk_tag"
+                printf '%s|%s\n' "_git_tag" "$vtk_tag" >> "$cmake_vars_file"
             fi
         fi
     fi
@@ -222,12 +222,18 @@ if [ -d "$SLICER_EXT_DIR" ]; then
 
     # worker: update or clone each repo in parallel
     if [ -s "$tmpfile" ]; then
-        cat "$tmpfile" | xargs -0 -n1 -P "$jobs" sh -c '
-            pair="$1"; url=${pair%%|*}; name=${pair#*|}; dest="'"$SLICER_EXT_DIR"'"/"$name"; 
+        cat "$tmpfile" | xargs -0 -n1 -P "$jobs" bash -c '
+            pair="$1"; url=${pair%%|*}; name=${pair#*|}; dest="'"$SLICER_EXT_DIR"'"/"$name";
             if [ -d "$dest/.git" ]; then
-                update_repo "$dest" || true;
+                branch=$(git -C "$dest" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD");
+                if [ "$branch" = "HEAD" ]; then
+                    echo "Detached HEAD in $dest — fetching and skipping pull.";
+                    git -C "$dest" fetch --all --tags --prune 2>/dev/null || true;
+                else
+                    git -C "$dest" pull --ff-only 2>/dev/null || true;
+                fi
             else
-                echo "Cloning $url -> $dest"; git clone --depth 1 "$url" "$dest" || true; 
+                echo "Cloning $url -> $dest"; git clone --depth 1 "$url" "$dest" || true;
             fi
         ' sh
     fi
