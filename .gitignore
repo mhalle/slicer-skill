@@ -4,6 +4,9 @@ slicer-extensions
 slicer-dependencies
 slicer-discourse
 
+# Setup timestamp
+.setup-stamp.json
+
 # Editor temp/swap files
 *~
 *.swp

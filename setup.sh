@@ -3,6 +3,22 @@
 
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+STAMP_FILE="$SCRIPT_DIR/.setup-stamp.json"
+MAX_AGE_SECONDS=86400  # 24 hours
+
+# Skip setup if the stamp file exists and is less than MAX_AGE_SECONDS old.
+# Pass --force to bypass this check.
+if [ "${1:-}" != "--force" ] && [ -f "$STAMP_FILE" ]; then
+    stamp_epoch=$(perl -ne 'print $1 if /"epoch"\s*:\s*(\d+)/' "$STAMP_FILE" 2>/dev/null || echo 0)
+    now_epoch=$(date +%s)
+    age=$(( now_epoch - stamp_epoch ))
+    if [ "$age" -lt "$MAX_AGE_SECONDS" ]; then
+        echo "Setup last ran $(( age / 3600 ))h$(( (age % 3600) / 60 ))m ago (< 24h). Skipping. Use --force to override."
+        exit 0
+    fi
+fi
+
 # locations may be overridden using environment variables
 : "${SLICER_SRC_DIR:=slicer-source}"
 : "${SLICER_EXT_DIR:=slicer-extensions}"
@@ -242,5 +258,8 @@ fi
 
 # 3. discourse archive
 clone_or_pull "https://github.com/pieper/slicer-discourse-archive.git" "$SLICER_DISCOURSE_DIR"
+
+# Write timestamp so subsequent runs can skip if recent enough
+printf '{"epoch": %d, "iso": "%s"}\n' "$(date +%s)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$STAMP_FILE"
 
 echo "Setup complete."
