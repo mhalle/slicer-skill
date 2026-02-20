@@ -49,7 +49,11 @@ clone_superbuild_deps() {
     local base="$SLICER_SRC_DIR"
     local outdir="$SLICER_DEP_DIR"
     mkdir -p "$outdir"
-    declare -A seen
+    seen_file=$(mktemp)
+    cmake_vars_file=$(mktemp)
+    # ensure temp files are removed when function exits
+    cleanup_clone_superbuild_deps() { rm -f "$seen_file" "$cmake_vars_file"; }
+    trap cleanup_clone_superbuild_deps RETURN
 
     normalize_repo() {
         local repo="$1"
@@ -76,24 +80,27 @@ clone_superbuild_deps() {
     fi
 
     # Parse SuperBuild files for ExternalProject_SetIfNotDefined and simple set(...) vars
-    declare -A cmake_vars
         for sf in "${files_to_scan[@]}"; do
-                perl -0777 -ne '
-                    my %set=();
-                    while(/set\(\s*([A-Za-z0-9_]+)\s+(?:"([^"]+)"|([^\)\s#]+))/g){ $set{$1}= defined $2 ? $2 : $3 }
-                    for my $k (keys %set) { print "$k|$set{$k}\n" }
-                    while(/ExternalProject_SetIfNotDefined\(\s*([^\s\)]+)\s*(?:"([^"]+)"|([^\)\s#]+))/g){
-                        $var=$1; $val = defined $2 ? $2 : $3;
-                        $var2 = $var;
-                        $var2 =~ s/\$\{([A-Za-z0-9_]+)\}/ (defined $set{$1} ? $set{$1} : "\$\{$1\}") /ge;
-                        print "$var2|$val\n";
-                    }
-                ' "$sf" | while IFS='|' read -r v val; do
-                        if [ -n "$v" ] && [ -n "$val" ]; then
-                                cmake_vars["$v"]="$val"
-                        fi
-                done
+            perl -0777 -ne '
+                my %set=();
+                while(/set\(\s*([A-Za-z0-9_]+)\s+(?:"([^"]+)"|([^\)\s#]+))/g){ $set{$1}= defined $2 ? $2 : $3 }
+                for my $k (keys %set) { print "$k|$set{$k}\n" }
+                while(/ExternalProject_SetIfNotDefined\(\s*([^\s\)]+)\s*(?:"([^"]+)"|([^\)\s#]+))/g){
+                $var=$1; $val = defined $2 ? $2 : $3;
+                $var2 = $var;
+                $var2 =~ s/\$\{([A-Za-z0-9_]+)\}/ (defined $set{$1} ? $set{$1} : "\$\{$1\}") /ge;
+                print "$var2|$val\n";
+                }
+            ' "$sf" | while IFS='|' read -r v val; do
+                if [ -n "$v" ] && [ -n "$val" ]; then
+                    printf '%s|%s\n' "$v" "$val" >> "$cmake_vars_file"
+                fi
+            done
         done
+
+        get_cmake_var() {
+            awk -F'|' -v k="$1" '$1==k {val=$2} END{ if(val) print val }' "$cmake_vars_file" || true
+        }
 
         for file in "${files_to_scan[@]}"; do
                 perl -0777 -ne '
@@ -129,10 +136,10 @@ clone_superbuild_deps() {
             if [ -z "$name" ]; then
                 continue
             fi
-            if [ -n "${seen[$repo]:-}" ]; then
+                    if grep -Fq "$repo" "$seen_file" 2>/dev/null; then
                 continue
             fi
-            seen[$repo]=1
+            printf '%s\n' "$repo" >> "$seen_file"
             dest="$outdir/$name"
             if [ -d "$dest/.git" ]; then
                 update_repo "$dest" || true
@@ -142,7 +149,7 @@ clone_superbuild_deps() {
                     if [[ "$tag" == *'${'* ]]; then
                         tmp_tag="$tag"
                         while [[ "$tmp_tag" =~ \$\{([A-Za-z0-9_]+)\} ]]; do
-                            k=${BASH_REMATCH[1]}; v=${cmake_vars[$k]:-}; if [ -z "$v" ]; then break; fi
+                            k=${BASH_REMATCH[1]}; v=$(get_cmake_var "$k"); if [ -z "$v" ]; then break; fi
                             tmp_tag=${tmp_tag//\$\{$k\}/$v}
                         done
                         tag="$tmp_tag"
