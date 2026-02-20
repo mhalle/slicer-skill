@@ -75,7 +75,13 @@ On success it will create/update the following folders:
   for inspecting build-time APIs, headers, and dependency versions.
 
 The script is idempotent; re-running it will `git pull` existing clones rather than cloning
-afresh.  See the header of `setup.sh` for additional options.
+afresh.  On completion it writes a `.setup-stamp.json` timestamp file. Subsequent runs
+automatically skip if the stamp is less than 24 hours old. Pass `--force` to bypass the
+age check:
+
+```sh
+./setup.sh --force
+```
 
 ### Verifying the setup
 
