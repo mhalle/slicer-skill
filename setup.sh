@@ -17,11 +17,27 @@ clone_or_pull() {
     local url="$1"
     local dest="$2"
     if [ -d "$dest/.git" ]; then
-        echo "Updating $dest..."
-        git -C "$dest" pull --ff-only
+        update_repo "$dest"
     else
         echo "Cloning $url -> $dest"
         git clone --depth 1 "$url" "$dest"
+    fi
+}
+
+# Update an existing git repo: if HEAD is detached, fetch tags/branches and skip pull
+update_repo() {
+    local dest="$1"
+    if [ ! -d "$dest/.git" ]; then
+        echo "Not a git repo: $dest"
+        return 0
+    fi
+    echo "Updating $dest..."
+    branch=$(git -C "$dest" rev-parse --abbrev-ref HEAD 2>/dev/null || echo "HEAD")
+    if [ "$branch" = "HEAD" ]; then
+        echo "Detached HEAD in $dest — fetching and skipping pull."
+        git -C "$dest" fetch --all --tags --prune 2>/dev/null || true
+    else
+        git -C "$dest" pull --ff-only 2>/dev/null || true
     fi
 }
 
@@ -119,8 +135,7 @@ clone_superbuild_deps() {
             seen[$repo]=1
             dest="$outdir/$name"
             if [ -d "$dest/.git" ]; then
-                echo "Updating dependency $name..."
-                git -C "$dest" pull --ff-only || true
+                update_repo "$dest" || true
             else
                 echo "Cloning dependency $repo -> $dest"
                     # resolve tag variables from parsed SuperBuild vars
@@ -155,8 +170,8 @@ clone_superbuild_deps() {
 
     # Special-case: resolve VTK _git_tag based on default VTK version from top-level CMakeLists
     if [ -f "$base/CMakeLists.txt" ] && [ -f "$base/SuperBuild/External_VTK.cmake" ]; then
-        default_major=$(grep -Po 'set\(_default_vtk_major_version\s+"?\K[0-9]+' "$base/CMakeLists.txt" || true)
-        default_minor=$(grep -Po 'set\(_default_vtk_minor_version\s+"?\K[0-9]+' "$base/CMakeLists.txt" || true)
+        default_major=$(perl -0777 -ne 'print $1 if /set\(_default_vtk_major_version\s+"?([0-9]+)/s' "$base/CMakeLists.txt" 2>/dev/null || true)
+        default_minor=$(perl -0777 -ne 'print $1 if /set\(_default_vtk_minor_version\s+"?([0-9]+)/s' "$base/CMakeLists.txt" 2>/dev/null || true)
         if [ -n "$default_major" ] && [ -n "$default_minor" ]; then
             want="${default_major}.${default_minor}"
             vtk_tag=$(perl -0777 -ne '
@@ -181,7 +196,7 @@ if [ -d "$SLICER_EXT_DIR" ]; then
     trap 'rm -f "$tmpfile"' EXIT
     # collect repo|name pairs as NUL-separated entries
     find "$SLICER_EXT_DIR" -name "*.json" -print0 | while IFS= read -r -d '' file; do
-        repo=$(grep -Po '"scm_url"\s*:\s*"\K[^\"]+' "$file" || true)
+        repo=$(perl -ne 'print $1 if /"scm_url"\s*:\s*"([^\"]+)"/' "$file" || true)
         if [ -n "$repo" ]; then
             name=$(basename "$repo" .git)
             if [ -n "$EXTENSION_FILTER" ] && ! [[ " $EXTENSION_FILTER " =~ " $name " ]]; then
@@ -203,7 +218,7 @@ if [ -d "$SLICER_EXT_DIR" ]; then
         cat "$tmpfile" | xargs -0 -n1 -P "$jobs" sh -c '
             pair="$1"; url=${pair%%|*}; name=${pair#*|}; dest="'"$SLICER_EXT_DIR"'"/"$name"; 
             if [ -d "$dest/.git" ]; then
-                echo "Updating $dest..."; git -C "$dest" pull --ff-only || true; 
+                update_repo "$dest" || true;
             else
                 echo "Cloning $url -> $dest"; git clone --depth 1 "$url" "$dest" || true; 
             fi
