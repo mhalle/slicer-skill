@@ -1,3 +1,11 @@
+---
+name: slicer
+description: Search and reason over 3D Slicer source, extensions, and community discussions
+version: "1.0"
+setup: ./setup.sh
+requires: [git, perl, bash]
+---
+
 # Slicer Skill
 
 This repository contains the information and helper scripts needed by an AI coding agent ("skill")
@@ -28,17 +36,18 @@ precise responses to programming questions about Slicer.
 > You are free to override these paths by setting the `SLICER_SRC_DIR`, `SLICER_EXT_DIR`,
 > `SLICER_DISCOURSE_DIR` and `SLICER_DEP_DIR` environment variables before running the setup script.
 
-> **SKILLS.md Format & Parsing Hints**
->
-> - Agents and tools should look for these canonical sections: **Goal**, **Setup
->   Instructions**, **How the Agent Should Use the Data**, and **Extending the Skill**.
-> - Keep runnable commands in fenced code blocks and list environment variables that
->   can be overridden (for example `SLICER_SRC_DIR`, `SLICER_EXT_DIR`, `SLICER_DISCOURSE_DIR`,
->   `SLICER_DEP_DIR`).
-> - If machine metadata is needed, prefer a short YAML frontmatter block or an explicit
->   `Metadata` subsection describing the repository layout and parsing semantics.
-> - Provide short examples of common queries (e.g., `git -C slicer-source grep -n "symbol"`)
->   to make it easier for automated tooling to validate the environment.
+---
+
+## Prerequisites
+
+The setup script requires the following tools to be available on `$PATH`:
+
+- **git** – for cloning and updating repositories.
+- **perl** – used to parse CMake files when resolving SuperBuild dependencies.
+- **bash** – the setup script targets Bash (macOS `/bin/bash` or Linux).
+
+On macOS the built-in versions of these tools are sufficient. On minimal Linux
+containers you may need to install `perl` and `git` explicitly.
 
 ---
 
@@ -60,41 +69,56 @@ On success it will create/update the following folders:
   references.
 - `slicer-discourse` – a `git clone` of
   `https://github.com/pieper/slicer-discourse-archive`.
- - `slicer-dependencies` – clones of the SuperBuild dependency repositories (VTK, ITK, CTK,
-   DCMTK, teem, etc.) placed next to `slicer-source`. These checkouts mirror the exact
-   repository URLs and git tags/commits referenced by the Slicer SuperBuild and are useful
-   for inspecting build-time APIs, headers, and dependency versions.
+- `slicer-dependencies` – clones of the SuperBuild dependency repositories (VTK, ITK, CTK,
+  DCMTK, teem, etc.) placed next to `slicer-source`. These checkouts mirror the exact
+  repository URLs and git tags/commits referenced by the Slicer SuperBuild and are useful
+  for inspecting build-time APIs, headers, and dependency versions.
 
-The script is idempotent; re‑running it will `git pull` existing clones rather than cloning
-afresh copy.  See the header of `setup.sh` for additional options.
+The script is idempotent; re-running it will `git pull` existing clones rather than cloning
+afresh.  See the header of `setup.sh` for additional options.
 
-> ⚠️ The extension index can contain hundreds of repositories and cloning them all may take a
-> while.  You can limit which extensions are fetched by editing the `EXTENSION_FILTER`
-> variable in `setup.sh` or by manually checking out only the subset you need.
+### Verifying the setup
+
+After the script finishes, confirm the key directories exist:
+
+```sh
+ls slicer-source/CMakeLists.txt slicer-extensions/README.md slicer-discourse/README.md slicer-dependencies/VTK
+```
+
+If any path is missing, re-run `./setup.sh` and check for error output.
+
+> **Disk space and time:** A full clone (source + all extensions + dependencies + discourse)
+> requires roughly 10–15 GB and can take 20+ minutes on a typical connection. You can
+> limit which extensions are fetched by setting the `EXTENSION_FILTER` variable in
+> `setup.sh` or by manually checking out only the subset you need.
 
 ---
 
 ## How the Agent Should Use the Data
 
-Once the repositories are available, the agent should treat them as follows:
+Once the repositories are available the agent should search, read, and reason
+over them to answer Slicer programming questions.  The key strategies are:
 
-- **Search for code** using `git grep` within `slicer-source` or any extension subdirectory.
-  Example: `git -C slicer-source grep -n "vtkSmartPointer"`.
-- **Locate header files** or module documentation with `find`, e.g.:  
-  `find slicer-source -name "*Logic.h"`.
-- **Query the discourse archive** by grepping for keywords:  
-  `grep -R "SegmentEditor" slicer-discourse`.
-- **Understand project structure** by inspecting CMakeLists, Python `__init__.py` files, and
+- **Search for code symbols** across `slicer-source`, extension subdirectories, or
+  `slicer-dependencies`.
+  CLI example: `git -C slicer-source grep -rn "vtkSmartPointer"`.
+- **Find files by name or pattern** — locate headers, Python modules, CMake configs, etc.
+  CLI example: `find slicer-source -name "*Logic.h"`.
+- **Query the discourse archive** for community discussions about a topic.
+  CLI example: `grep -rn "SegmentEditor" slicer-discourse`.
+- **Inspect build dependencies** in `slicer-dependencies` when reasoning about
+  build-time behavior, API versions, or exact tags used by the SuperBuild.
+  CLI example: `git -C slicer-dependencies/VTK grep -rn "vtkNew"`.
+- **Understand project structure** by reading CMakeLists, Python `__init__.py` files, and
   other configuration files in the clones.
 
-- **Use build dependencies** by inspecting `slicer-dependencies` when reasoning about
-  build-time behavior: check headers, API versions and exact tags used by the SuperBuild.
-  Example: `git -C slicer-dependencies/ITK grep -n "SomeITKSymbol"`.
+> Agents with higher-level file search and content search tools (e.g. Glob, Grep, Read)
+> should prefer those over raw shell commands when available.  The CLI examples above are
+> provided for reference and for agents that only have shell access.
 
 The goal is not merely to index, but to *reason* over the material.  For example, when
 asked "how do I add a module to the build", the agent can search CMake macros in
-`slicer-source/Applications/CLI/CMakeLists.txt` and provide a snippet of the real
-call sites.
+`slicer-source` and provide a snippet of the real call sites.
 
 ## Extending the Skill
 
