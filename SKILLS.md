@@ -24,9 +24,21 @@ Python modules, build configurations, and other snippets that help it craft accu
 precise responses to programming questions about Slicer.
 
 > 📁 Repositories are checked out into subdirectories of the skill workspace named
-> `slicer-source`, `slicer-extensions`, and `slicer-discourse` respectively.  You are free to
-> override these paths by setting the `SLICER_SRC_DIR`, `SLICER_EXT_DIR` and
-> `SLICER_DISCOURSE_DIR` environment variables before running the setup script.
+> `slicer-source`, `slicer-extensions`, `slicer-discourse` and `slicer-dependencies` respectively.
+> You are free to override these paths by setting the `SLICER_SRC_DIR`, `SLICER_EXT_DIR`,
+> `SLICER_DISCOURSE_DIR` and `SLICER_DEP_DIR` environment variables before running the setup script.
+
+> **SKILLS.md Format & Parsing Hints**
+>
+> - Agents and tools should look for these canonical sections: **Goal**, **Setup
+>   Instructions**, **How the Agent Should Use the Data**, and **Extending the Skill**.
+> - Keep runnable commands in fenced code blocks and list environment variables that
+>   can be overridden (for example `SLICER_SRC_DIR`, `SLICER_EXT_DIR`, `SLICER_DISCOURSE_DIR`,
+>   `SLICER_DEP_DIR`).
+> - If machine metadata is needed, prefer a short YAML frontmatter block or an explicit
+>   `Metadata` subsection describing the repository layout and parsing semantics.
+> - Provide short examples of common queries (e.g., `git -C slicer-source grep -n "symbol"`)
+>   to make it easier for automated tooling to validate the environment.
 
 ---
 
@@ -48,6 +60,10 @@ On success it will create/update the following folders:
   references.
 - `slicer-discourse` – a `git clone` of
   `https://github.com/pieper/slicer-discourse-archive`.
+ - `slicer-dependencies` – clones of the SuperBuild dependency repositories (VTK, ITK, CTK,
+   DCMTK, teem, etc.) placed next to `slicer-source`. These checkouts mirror the exact
+   repository URLs and git tags/commits referenced by the Slicer SuperBuild and are useful
+   for inspecting build-time APIs, headers, and dependency versions.
 
 The script is idempotent; re‑running it will `git pull` existing clones rather than cloning
 afresh copy.  See the header of `setup.sh` for additional options.
@@ -70,6 +86,10 @@ Once the repositories are available, the agent should treat them as follows:
   `grep -R "SegmentEditor" slicer-discourse`.
 - **Understand project structure** by inspecting CMakeLists, Python `__init__.py` files, and
   other configuration files in the clones.
+
+- **Use build dependencies** by inspecting `slicer-dependencies` when reasoning about
+  build-time behavior: check headers, API versions and exact tags used by the SuperBuild.
+  Example: `git -C slicer-dependencies/ITK grep -n "SomeITKSymbol"`.
 
 The goal is not merely to index, but to *reason* over the material.  For example, when
 asked "how do I add a module to the build", the agent can search CMake macros in
