@@ -28,7 +28,7 @@ project's configuration file (e.g. `CLAUDE.md`, `AGENTS.md`, or equivalent).
 Replace `/path/to/slicer-skill` with the absolute path where you cloned this
 repository:
 
-```markdown
+````markdown
 ## Slicer Programming Reference
 
 For help answering 3D Slicer programming questions, use the slicer skill located at:
@@ -51,7 +51,7 @@ Do NOT clone repositories into this project directory.
   - `/path/to/slicer-skill/slicer-extensions/`
   - `/path/to/slicer-skill/slicer-discourse/`
   - `/path/to/slicer-skill/slicer-dependencies/`
-```
+````
 
 ### Claude Code
 
