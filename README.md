@@ -64,3 +64,85 @@ claude --add-dir /path/to/slicer-skill
 
 This makes the skill and all its data available for searching without copying
 anything into your project.
+
+## MCP Server
+
+This repository includes `slicer-mcp-server.py`, a self-contained
+[Model Context Protocol](https://modelcontextprotocol.io/) (MCP) server that
+runs inside 3D Slicer.  It exposes tools such as `list_nodes`,
+`execute_python`, `screenshot`, and `load_sample_data` over HTTP so that MCP
+clients (Claude Code, Claude Desktop, Cline, etc.) can interact with a live
+Slicer session.
+
+### Quick start
+
+1. Open 3D Slicer and paste the contents of `slicer-mcp-server.py` into the
+   Python console (or run it via `execfile`).
+2. Add the server to your MCP client configuration (`.mcp.json`,
+   `claude_desktop_config.json`, etc.):
+   ```json
+   {
+     "mcpServers": {
+       "slicer": {
+         "type": "http",
+         "url": "http://localhost:2026/mcp"
+       }
+     }
+   }
+   ```
+3. Your MCP client can now query the scene, execute code, and take screenshots
+   in Slicer.
+
+To stop the server from within Slicer: `mcpLogic.stop()`
+
+### Related projects
+
+* **[mcp-slicer](https://github.com/zhaoyouj/mcp-slicer)** — a standalone
+  MCP server for 3D Slicer by @zhaoyouj, installable via `pip` / `uvx`.  It
+  uses Slicer's built-in WebServer API as a bridge and can be launched outside
+  of Slicer.
+* **[SlicerDeveloperAgent](https://github.com/muratmaga/SlicerDeveloperAgent)**
+  — a Slicer extension by Murat Maga that embeds an AI coding agent directly
+  inside 3D Slicer using Gemini, letting users prompt, run, and iterate on
+  scripts and modules without leaving the application.  See the
+  [Discourse discussion](https://discourse.slicer.org/t/developer-agent-for-slicer/44787)
+  for background.
+* **[NA-MIC Project Week 44 — Claude Scientific Skill for Imaging Data Commons](https://projectweek.na-mic.org/PW44_2026_GranCanaria/Projects/ClaudeScientificSkillForImagingDataCommons/)**
+  — a project that developed a Claude skill for the
+  [Imaging Data Commons](https://portal.imaging.datacommons.cancer.gov/)
+  (IDC), published at
+  [ImagingDataCommons/idc-claude-skill](https://github.com/ImagingDataCommons/idc-claude-skill).
+
+### Security warning
+
+The MCP server grants any connected client the ability to **execute arbitrary
+Python code** inside your Slicer process.  This is powerful but carries
+significant risk:
+
+* **Code execution** — A compromised or malicious MCP client can run any code
+  with the full privileges of the Slicer process, including reading and writing
+  files, accessing the network, and installing software.
+* **Protected Health Information (PHI)** — If you are working with patient
+  data or other confidential information, be aware that an MCP client (and the
+  remote AI model behind it) may send and receive data that includes PHI.
+  Ensure you comply with your institution's data-handling policies, HIPAA, and
+  any other applicable regulations.
+* **Third-party models** — Prompts and tool responses may be transmitted to
+  cloud-hosted AI services.  Do not assume that data shared through the MCP
+  connection stays local.
+
+**We strongly recommend running the MCP server inside a contained
+environment** rather than on your everyday workstation:
+
+* **Docker** — Use a containerised Slicer such as
+  [SlicerDockers](https://github.com/pieper/SlicerDockers) or the official
+  [Slicer/SlicerDocker](https://github.com/Slicer/SlicerDocker).
+* **Virtual machines** — Provision a VM through
+  [Jetstream2](https://jetstream-cloud.org/),
+  [vast.ai](https://vast.ai/),
+  AWS, GCP, Azure, or any other cloud provider.  This isolates the Slicer
+  process (and any data it loads) from your local machine.
+
+By keeping Slicer and the MCP server in an isolated environment you limit the
+blast radius of any unintended or malicious actions and reduce the chance of
+accidentally exposing sensitive data.
