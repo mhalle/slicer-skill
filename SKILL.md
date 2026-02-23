@@ -144,6 +144,21 @@ worthwhile.
 
 ---
 
+## MCP Server (live Slicer interaction)
+
+This skill includes an MCP server (`slicer-mcp-server.py`) that runs inside a
+live 3D Slicer session.  When connected, it provides tools to list scene nodes,
+execute Python code, take screenshots, and load sample data — letting you
+combine source-code knowledge with live interaction.
+
+**The MCP server is optional** and not enabled by default.  The user must
+configure their MCP client and start the server inside Slicer before the tools
+become available.  See [references/mcp.md](references/mcp.md) for client
+configuration, usage patterns, the `__result` convention, and tips for
+effective tool use.
+
+---
+
 ## Script Repository
 
 The Slicer source tree contains working Python snippets that demonstrate common

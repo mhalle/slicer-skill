@@ -79,17 +79,10 @@ Slicer session.
 
 1. Open 3D Slicer and paste the contents of `slicer-mcp-server.py` into the
    Python console (or run it via `execfile`).
-2. Add the server to your MCP client configuration (`.mcp.json`,
-   `claude_desktop_config.json`, etc.):
-   ```json
-   {
-     "mcpServers": {
-       "slicer": {
-         "type": "http",
-         "url": "http://localhost:2026/mcp"
-       }
-     }
-   }
+2. Copy `mcp.json.sample` to `.mcp.json` in your project (or add the
+   equivalent to `claude_desktop_config.json`, etc.):
+   ```sh
+   cp /path/to/slicer-skill/mcp.json.sample /path/to/your-project/.mcp.json
    ```
 3. Your MCP client can now query the scene, execute code, and take screenshots
    in Slicer.
