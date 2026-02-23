@@ -66,6 +66,18 @@ This fork streamlines the original skill in two main ways:
 - Setup instructions reference `scripts/setup.sh`.
 - Removed references to `slicer-dependencies/` and `slicer-discourse/`.
 
+## MCP server documented
+
+- **Added `references/mcp.md`** with detailed documentation for the MCP server:
+  client configuration, available tools, the `__result` convention for
+  `execute_python`, state persistence workaround, UI responsiveness tips, and
+  the search-then-execute workflow pattern.
+- **Added MCP section to SKILL.md** explaining that the server is optional and
+  pointing to the reference file.
+- **Renamed `.mcp.json` to `mcp.json.sample`** so that the MCP connection is
+  not auto-activated when the skill directory is loaded.  Users copy the sample
+  to `.mcp.json` in their own project when they want to enable it.
+
 ## .gitignore cleaned up
 
 - Removed `slicer-source`, `slicer-extensions`, `slicer-dependencies`,
