@@ -319,27 +319,3 @@ the source code alone**.
 3. Transform node API — `Libs/MRML/Core/vtkMRMLTransformNode.h`
 
 ---
-
-## Design Principles
-
-1. **Prefer pointers to copies.** Direct the agent to read specific files
-   rather than embedding content inline.  The Slicer source tree is the single
-   source of truth — pointers cost one extra file-read but are always accurate.
-
-2. **Be specific with pointers.** Every pointer should name a concrete file or
-   directory path.  The agent should resolve any pointer with a single Read or
-   Grep operation.
-
-3. **Inline only what cannot be discovered.** The "Common Pitfalls" section is
-   the exception — pitfalls live in the gap between code and how people misuse
-   it.  New pitfalls should be added only when they meet this bar.
-
-4. **Keep the file under 500 lines.** If approaching the limit, move detail to
-   supporting files and link from here.
-
-5. **Stay agent-agnostic.** Target any agent that understands the SKILLS.md
-   convention.  Avoid features specific to a single runtime.
-
----
-
-*Created and maintained by the Slicer community.*
