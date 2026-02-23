@@ -8,7 +8,7 @@ description: >
   DICOM workflows, and the Slicer build system.
 compatibility: "Requires git and bash"
 metadata:
-  version: "2.1"
+  version: "2.2"
 ---
 
 # Slicer Skill
@@ -158,6 +158,28 @@ git tag, and build flags for each dependency (VTK, ITK, SimpleITK, CTK, DCMTK, e
 Grep these files for version and configuration information.  For API details of
 a dependency, use web search — cloning multi-GB dependency repos is rarely
 worthwhile.
+
+### 5. Web Fallback (when local repos are unavailable)
+
+If the local repositories are not cloned (e.g. sandboxed environments without
+filesystem access, or first run before `setup.sh`), fall back to web search
+against these official sources:
+
+| Source | URL | What to search for |
+|--------|-----|--------------------|
+| **GitHub source** | `https://github.com/Slicer/Slicer` | Class names, methods, file paths — use `site:github.com/Slicer/Slicer` |
+| **ReadTheDocs** | `https://slicer.readthedocs.io/` | Tutorials, script repository, developer guide — use `site:slicer.readthedocs.io` |
+| **API reference (Doxygen)** | `https://apidocs.slicer.org/` | C++ class docs, inheritance, method signatures — use `site:apidocs.slicer.org` |
+| **Extensions index** | `https://github.com/Slicer/ExtensionsIndex` | Extension metadata and repo URLs |
+
+The Script Repository is also available online at:
+```
+https://slicer.readthedocs.io/en/latest/developer_guide/script_repository.html
+```
+
+**Strategy:** Prefer local Grep/Read when repos are available (faster, exact
+line numbers).  Fall back to web search when they are not.  Do not clone the
+full Slicer repo just for a single query — use targeted web searches instead.
 
 ---
 
