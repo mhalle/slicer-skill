@@ -21,19 +21,22 @@ two web APIs as data sources.
 
 ## Setup
 
-If the directories `slicer-source/` or `slicer-extensions/` are missing, run:
+Repositories are cached in `~/.cache/slicer-skill/repositories/`.  If the
+directories `slicer-source/` or `slicer-extensions/` are missing there, run:
 
 ```sh
 scripts/setup.sh
 ```
 
-The script shallow-clones both repos and writes a `.setup-stamp.json` so that
+The script shallow-clones both repos and writes a stamp file so that
 subsequent runs skip if the stamp is less than 24 hours old.  Pass `--force`
 to bypass the age check.
 
 ---
 
 ## Data Sources
+
+All local paths below are relative to `~/.cache/slicer-skill/repositories/`.
 
 ### 1. Slicer Source (local)
 
@@ -54,29 +57,31 @@ Each `.json` file (e.g. `SlicerIGT.json`) contains `scm_url`, `category`,
 `build_dependencies`, and `tier`.  To find extensions by topic:
 
 ```sh
-grep -l '"category": "Segmentation"' slicer-extensions/*.json
+grep -l '"category": "Segmentation"' ~/.cache/slicer-skill/repositories/slicer-extensions/*.json
 ```
 
 If `jq` is available, use it to query the index more precisely:
 
 ```sh
+EXTDIR=~/.cache/slicer-skill/repositories/slicer-extensions
+
 # List all categories
-jq -r '.category' slicer-extensions/*.json | sort -u
+jq -r '.category' "$EXTDIR"/*.json | sort -u
 
 # Find extensions in a category with their repo URLs
-for f in slicer-extensions/*.json; do
+for f in "$EXTDIR"/*.json; do
   jq -r 'select(.category == "Segmentation") | .scm_url' "$f" 2>/dev/null
 done
 
 # Get full details for a specific extension
-jq . slicer-extensions/SlicerIGT.json
+jq . "$EXTDIR"/SlicerIGT.json
 ```
 
 To inspect an extension's source code, read its JSON file for the `scm_url`
 field and clone the repository on demand:
 
 ```sh
-git clone --depth 1 <scm_url> slicer-extensions/<ExtensionName>
+git clone --depth 1 <scm_url> ~/.cache/slicer-skill/repositories/slicer-extensions/<ExtensionName>
 ```
 
 Well-known extensions that demonstrate common patterns:

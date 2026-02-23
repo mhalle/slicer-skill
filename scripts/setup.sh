@@ -2,9 +2,9 @@
 # setup.sh — clone Slicer source and ExtensionsIndex for local search
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SKILL_DIR="$(dirname "$SCRIPT_DIR")"
-STAMP_FILE="$SKILL_DIR/.setup-stamp.json"
+CACHE_DIR="${HOME}/.cache/slicer-skill"
+REPO_DIR="${CACHE_DIR}/repositories"
+STAMP_FILE="${CACHE_DIR}/.setup-stamp.json"
 MAX_AGE=86400  # 24 hours
 
 # Skip if stamp is fresh (pass --force to bypass)
@@ -17,8 +17,10 @@ if [ "${1:-}" != "--force" ] && [ -f "$STAMP_FILE" ]; then
     fi
 fi
 
+mkdir -p "$REPO_DIR"
+
 clone_or_pull() {
-    local url="$1" dest="$SKILL_DIR/$2"
+    local url="$1" dest="$REPO_DIR/$2"
     if [ -d "$dest/.git" ]; then
         echo "Updating $dest..."
         git -C "$dest" pull --ff-only 2>/dev/null || true
@@ -32,4 +34,4 @@ clone_or_pull "https://github.com/Slicer/Slicer.git"          slicer-source
 clone_or_pull "https://github.com/Slicer/ExtensionsIndex.git"  slicer-extensions
 
 printf '{"epoch": %d, "iso": "%s"}\n' "$(date +%s)" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > "$STAMP_FILE"
-echo "Setup complete."
+echo "Setup complete. Repositories in: $REPO_DIR"

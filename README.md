@@ -35,19 +35,18 @@ For help answering 3D Slicer programming questions, use the slicer skill located
     /path/to/slicer-skill
 
 That directory contains `SKILL.md` with instructions for searching Slicer source
-code, extensions, discourse archives, and dependency repositories.
+code, extensions, and community discussions.
 
-**Important:** All slicer-skill data lives in that single shared directory.
-Do NOT clone repositories into this project directory.
+**Important:** Do NOT clone repositories into your project directory.
 
-- If the repos are not yet set up, run `scripts/setup.sh` **from within the
-  slicer-skill directory**:
+- If the repos are not yet set up, run `scripts/setup.sh` from the
+  slicer-skill directory:
   ```sh
-  cd /path/to/slicer-skill && scripts/setup.sh
+  /path/to/slicer-skill/scripts/setup.sh
   ```
-- All searches should target paths under `/path/to/slicer-skill/`:
-  - `/path/to/slicer-skill/slicer-source/`
-  - `/path/to/slicer-skill/slicer-extensions/`
+- Repositories are cached in `~/.cache/slicer-skill/repositories/`:
+  - `~/.cache/slicer-skill/repositories/slicer-source/`
+  - `~/.cache/slicer-skill/repositories/slicer-extensions/`
 ````
 
 ### Claude Code
