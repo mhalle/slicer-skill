@@ -127,7 +127,7 @@ https://discourse.slicer.org/search.json?q=segment%20editor%20category:support%2
 ### 4. Dependencies (SuperBuild + web)
 
 Slicer's `SuperBuild/External_*.cmake` files specify the exact repository URL,
-git tag, and build flags for each dependency (VTK, ITK, CTK, DCMTK, etc.).
+git tag, and build flags for each dependency (VTK, ITK, SimpleITK, CTK, DCMTK, etc.).
 Grep these files for version and configuration information.  For API details of
 a dependency, use web search — cloning multi-GB dependency repos is rarely
 worthwhile.
