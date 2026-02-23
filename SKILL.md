@@ -407,4 +407,13 @@ the source code alone**.
 This skill's metadata includes `repository` and `release_url` fields.
 To check for updates, fetch the `release_url` and compare the latest
 release tag against the tag this skill was installed from.  If a newer
-version is available, let the user know and provide the download link.
+version is available, inform the user and offer to download the `.skill`
+file from the release.  The download URL follows the pattern:
+
+```
+https://github.com/mhalle/slicer-skill/releases/download/<tag>/slicer-skill.skill
+```
+
+Download the file to a temporary location and present it to the user.
+In Claude Code, presenting a downloaded `.skill` file triggers an option
+to install or update the skill.
