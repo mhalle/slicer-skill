@@ -16,7 +16,7 @@ to fetch the required repositories when needed.
 ### Claude.ai
 
 Download the `.skill` file from the
-[releases page](https://github.com/mhalle/slicer-skill/releases/latest)
+[latest release](https://github.com/mhalle/slicer-skill/releases/latest/download/slicer-skill.skill)
 and add it to Claude.ai.  See
 [Using Skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude)
 for instructions.
@@ -26,7 +26,7 @@ for instructions.
 **Option A — Download the `.skill` file (recommended):**
 
 Download the latest release from the
-[releases page](https://github.com/mhalle/slicer-skill/releases/latest)
+[latest release](https://github.com/mhalle/slicer-skill/releases/latest/download/slicer-skill.skill)
 and open the `.skill` file.  Claude Code will prompt you to install it.
 
 **Option B — Clone the repository:**
