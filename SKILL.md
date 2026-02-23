@@ -8,7 +8,9 @@ description: >
   DICOM workflows, and the Slicer build system.
 compatibility: "Requires git and bash"
 metadata:
-  version: "2.2"
+  author: mhalle, pieper
+  repository: https://github.com/mhalle/slicer-skill
+  release_url: https://github.com/mhalle/slicer-skill/releases/latest
 ---
 
 # Slicer Skill
@@ -129,6 +131,20 @@ https://discourse.slicer.org/search.json?q=<query>
 Use this when source-code search is insufficient — forum threads often explain
 *why* things work a certain way, not just *how*.  Results include topic titles,
 excerpts, and links to full discussions.
+
+**Sandboxed environments:** Some agents restrict direct URL fetching to domains
+that have first appeared in a web search result.  If `web_fetch` to
+`discourse.slicer.org` fails, seed the domain with a web search first:
+
+```
+web_search: site:discourse.slicer.org <topic>
+```
+
+Once any `discourse.slicer.org` URL appears in search results, subsequent
+fetches to the domain (including API endpoints like `search.json`) will
+succeed.  The recommended workflow is: seed with web search, then switch to
+the `search.json` API for targeted queries — it supports filters, date ranges,
+and pagination that web search does not.
 
 **Query filters** — append these to the search term:
 
@@ -385,3 +401,10 @@ the source code alone**.
 3. Transform node API — `Libs/MRML/Core/vtkMRMLTransformNode.h`
 
 ---
+
+## Version Checking
+
+This skill's metadata includes `repository` and `release_url` fields.
+To check for updates, fetch the `release_url` and compare the latest
+release tag against the tag this skill was installed from.  If a newer
+version is available, let the user know and provide the download link.

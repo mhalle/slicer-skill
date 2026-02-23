@@ -1,0 +1,35 @@
+name: Package Skill
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    env:
+      SKILL_NAME: ${{ github.event.repository.name }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Package skill
+        run: |
+          mkdir -p build/$SKILL_NAME
+          shopt -s dotglob
+          for item in *; do
+            case "$item" in .git|.github|build) continue ;; esac
+            cp -a "$item" build/$SKILL_NAME/
+          done
+
+          cd build
+          zip -r ../$SKILL_NAME.skill $SKILL_NAME
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ${{ env.SKILL_NAME }}.skill

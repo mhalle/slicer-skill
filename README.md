@@ -23,7 +23,7 @@ resources are available for search.
 Clone this repository into your Claude Code skills directory:
 
 ```sh
-git clone https://github.com/pieper/slicer-skill ~/.claude/skills/slicer-skill
+git clone https://github.com/mhalle/slicer-skill ~/.claude/skills/slicer-skill
 ```
 
 Claude Code automatically reads `SKILL.md` files from `~/.claude/skills/`.
