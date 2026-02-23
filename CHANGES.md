@@ -111,3 +111,30 @@ This fork streamlines the original skill in two main ways:
   for OpenCode / Gemini workflows.
 
 ### Version bumped to 2.2
+
+## v2.4: skill packaging, version checking, and sandbox fixes
+
+### GitHub Actions packaging workflow
+
+- Added `.github/workflows/package.yml` — on version tags (`v*`), builds a
+  `.skill` zip and creates a GitHub release with the file attached.
+- Generic workflow derived from repo name; works as-is in any skill repo.
+
+### SKILL.md metadata (agentskills.io spec)
+
+- Replaced `version` field with `repository`, `release_url`, and `author`
+  per the [agentskills.io specification](https://agentskills.io/specification).
+- Updated repo URLs from `pieper/slicer-skill` to `mhalle/slicer-skill`.
+
+### Version checking and auto-update
+
+- Added "Version Checking" section to SKILL.md instructing agents to fetch
+  `release_url`, compare tags, and offer to download the `.skill` file.
+- Downloading and presenting a `.skill` file triggers installation in
+  Claude Code.
+
+### Discourse sandbox workaround
+
+- Added note to the Discourse data source section: in sandboxed environments,
+  seed `discourse.slicer.org` via a web search before fetching the API
+  directly.

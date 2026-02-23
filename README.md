@@ -7,20 +7,29 @@ resources are available for search.
 
 ## Getting started
 
-1. Read `SKILL.md` for detailed information about the expected workflow and data
-   sources.
-2. Run the setup script to fetch the required repositories:
-   ```sh
-   scripts/setup.sh
-   ```
-3. Use the resulting local copies when answering questions by searching for
-   code and files across the cloned repositories.
+Install the skill (see Installation below).  The agent reads `SKILL.md` for
+data sources and workflow instructions and runs `scripts/setup.sh` automatically
+to fetch the required repositories when needed.
 
 ## Installation
 
+### Claude.ai
+
+Download the `.skill` file from the
+[releases page](https://github.com/mhalle/slicer-skill/releases/latest)
+and add it to Claude.ai.  See
+[Using Skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude)
+for instructions.
+
 ### Claude Code
 
-Clone this repository into your Claude Code skills directory:
+**Option A — Download the `.skill` file (recommended):**
+
+Download the latest release from the
+[releases page](https://github.com/mhalle/slicer-skill/releases/latest)
+and open the `.skill` file.  Claude Code will prompt you to install it.
+
+**Option B — Clone the repository:**
 
 ```sh
 git clone https://github.com/mhalle/slicer-skill ~/.claude/skills/slicer-skill
@@ -28,14 +37,10 @@ git clone https://github.com/mhalle/slicer-skill ~/.claude/skills/slicer-skill
 
 Claude Code automatically reads `SKILL.md` files from `~/.claude/skills/`.
 The skill will be available in all sessions without additional configuration.
+The agent will run `scripts/setup.sh` automatically when it needs the local
+repositories.
 
-Then run setup to fetch the Slicer repositories:
-
-```sh
-~/.claude/skills/slicer-skill/scripts/setup.sh
-```
-
-Alternatively, you can add the skill to a single session with `--add-dir`:
+You can also add the skill to a single session with `--add-dir`:
 
 ```sh
 claude --add-dir /path/to/slicer-skill
@@ -57,13 +62,8 @@ located at:
     /path/to/slicer-skill
 
 That directory contains `SKILL.md` with instructions for searching Slicer
-source code, extensions, and community discussions.
-
-- If the repos are not yet set up, run:
-  ```sh
-  /path/to/slicer-skill/scripts/setup.sh
-  ```
-- Repositories are cached in `~/.cache/slicer-skill/repositories/`
+source code, extensions, and community discussions.  The agent will run
+`scripts/setup.sh` automatically when it needs the local repositories.
 ````
 
 ## MCP Server
