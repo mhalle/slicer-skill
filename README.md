@@ -1,9 +1,12 @@
 # slicer-skill
 
-This repository provides the groundwork for an **AI coding skill** that assists with
-programming questions related to [3D Slicer](https://www.slicer.org).  The primary piece of
-content is `SKILL.md` which describes how an agent can prepare its environment and what
-resources are available for search.
+This repository provides an **AI coding skill** that assists with programming
+questions related to [3D Slicer](https://www.slicer.org).  It is based on the
+original [slicer-skill](https://github.com/pieper/slicer-skill) by
+[@pieper](https://github.com/pieper).  See [CHANGES.md](CHANGES.md) for what
+was modified and why.  The primary piece of content is `SKILL.md` which
+describes how an agent can prepare its environment and what resources are
+available for search.
 
 ## Getting started
 
@@ -106,6 +109,8 @@ To stop the server from within Slicer: `mcpLogic.stop()`
 
 ### Related projects
 
+* **[slicer-skill (original)](https://github.com/pieper/slicer-skill)** — the
+  original skill by @pieper that this repository is based on.
 * **[slicerSkill](https://github.com/jumbojing/slicerSkill)** — a cloud-only
   adaptation of this skill by @jumbojing.  It replaces local repository clones
   with web-search directives (GitHub code search, ReadTheDocs, Doxygen), making
