@@ -1,5 +1,25 @@
 # Changes from pieper/slicer-skill
 
+This fork streamlines the original skill in two main ways:
+
+1. **Dramatically reduced download size.**  The original `setup.sh` cloned
+   ~10–15 GB of data, including full checkouts of every Slicer SuperBuild
+   dependency (VTK, ITK, CTK, DCMTK, etc.), all 200+ extension repositories,
+   and a Discourse archive.  The new setup shallow-clones only two
+   repositories — Slicer source and the ExtensionsIndex — totalling well under
+   1 GB.  Dependency details are found by grepping the existing
+   `SuperBuild/External_*.cmake` files and web search; Discourse is searched
+   via its public API; extension repos are cloned on demand when needed.
+
+2. **Adherence to SKILL.md standards and conventions.**  The skill file has
+   been restructured to follow the emerging conventions for AI coding skills,
+   including spec-compliant YAML frontmatter, agent-focused content (no
+   human-facing setup instructions), and clear data-source documentation.  See
+   the [Claude Code skills documentation](https://docs.anthropic.com/en/docs/claude-code/skills)
+   and [agentskills.io](https://agentskills.io) for background on the format.
+
+---
+
 ## SKILL.md rewritten (481 → 345 lines)
 
 - **Frontmatter fixed** to match spec: `name` changed from `slicer` to

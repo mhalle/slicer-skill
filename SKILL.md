@@ -78,10 +78,20 @@ jq . "$EXTDIR"/SlicerIGT.json
 ```
 
 To inspect an extension's source code, read its JSON file for the `scm_url`
-field and clone the repository on demand:
+field and clone the repository on demand.  On-demand clones go as siblings of
+`slicer-source/` and `slicer-extensions/`, using the extension's own name:
 
 ```sh
-git clone --depth 1 <scm_url> ~/.cache/slicer-skill/repositories/slicer-extensions/<ExtensionName>
+REPO_DIR=~/.cache/slicer-skill/repositories
+EXTENSION=SlicerIGT  # example
+
+# Clone if not already present; pull if it is
+if [ -d "$REPO_DIR/$EXTENSION/.git" ]; then
+  git -C "$REPO_DIR/$EXTENSION" pull --ff-only 2>/dev/null || true
+else
+  scm_url=$(jq -r '.scm_url' "$REPO_DIR/slicer-extensions/$EXTENSION.json")
+  git clone --depth 1 "$scm_url" "$REPO_DIR/$EXTENSION"
+fi
 ```
 
 Well-known extensions that demonstrate common patterns:
@@ -235,8 +245,10 @@ MRML is the in-memory scene graph holding all data.
 - Developer guide: `Docs/developer_guide/extensions.md`
 - Extension scaffolding: `Modules/Scripted/ExtensionWizard/`
 - Extension index files: `slicer-extensions/*.json` (contain `scm_url`, category, dependencies)
-- To study a real extension, clone it on demand (see Data Sources §2) and read
-  its `CMakeLists.txt` and module directories — the structure mirrors core modules
+- To study a real extension, clone it on demand into
+  `~/.cache/slicer-skill/repositories/<ExtensionName>` (see Data Sources §2)
+  and read its `CMakeLists.txt` and module directories — the structure mirrors
+  core modules
 
 ### Python Utilities
 
