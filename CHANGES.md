@@ -83,3 +83,31 @@ This fork streamlines the original skill in two main ways:
 - Removed `slicer-source`, `slicer-extensions`, `slicer-dependencies`,
   `slicer-discourse`, and `.setup-stamp.json` entries (no longer needed since
   repos are cached outside the skill directory).
+
+## v2.2: custom cache directory and web-search fallback
+
+### setup.sh: configurable cache directory
+
+- Cache directory can now be overridden via a CLI argument
+  (`setup.sh /tmp/slicer-skill-$USER`) or the `SLICER_SKILL_CACHE_DIR`
+  environment variable.  Fixes permission issues in sandboxed environments
+  (e.g. Claude Code) where `~/.cache` may not be writable.
+- `--force` and the directory argument can be combined in any order.
+
+### SKILL.md: web-search fallback (§5)
+
+- Added a new **"Web Fallback"** data source section for use when local repos
+  are unavailable.  Lists ReadTheDocs, Doxygen API reference
+  (`apidocs.slicer.org`), GitHub code search, and the online Script Repository
+  URL.
+- Inspired by the cloud-only approach in
+  [jumbojing/slicerSkill](https://github.com/jumbojing/slicerSkill), which
+  replaces local clones entirely with web-search directives.
+
+### README.md: related projects
+
+- Added [jumbojing/slicerSkill](https://github.com/jumbojing/slicerSkill) to
+  the Related projects section — a zero-setup, cloud-only adaptation designed
+  for OpenCode / Gemini workflows.
+
+### Version bumped to 2.2
