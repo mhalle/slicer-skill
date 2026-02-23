@@ -75,12 +75,20 @@ runs inside 3D Slicer.  It exposes tools such as `list_nodes`,
 clients (Claude Code, Claude Desktop, Cline, etc.) can interact with a live
 Slicer session.
 
+**Important:** The MCP configuration (`.mcp.json`) should **not** be included
+in the skill directory itself.  A `.mcp.json` inside a skill would activate
+the MCP connection for every user who installs the skill, which is unexpected
+and a security risk.  Instead, users enable the MCP server in their own
+project by copying the sample configuration.  The skill repo ships
+`mcp.json.sample` as a template and `.mcp.json` is gitignored.
+
 ### Quick start
 
 1. Open 3D Slicer and paste the contents of `slicer-mcp-server.py` into the
    Python console (or run it via `execfile`).
-2. Copy `mcp.json.sample` to `.mcp.json` in your project (or add the
-   equivalent to `claude_desktop_config.json`, etc.):
+2. Copy `mcp.json.sample` to `.mcp.json` in **your project directory** (not
+   the skill directory), or add the equivalent to `claude_desktop_config.json`,
+   etc.:
    ```sh
    cp /path/to/slicer-skill/mcp.json.sample /path/to/your-project/.mcp.json
    ```

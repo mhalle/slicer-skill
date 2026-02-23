@@ -138,3 +138,13 @@ This fork streamlines the original skill in two main ways:
 - Added note to the Discourse data source section: in sandboxed environments,
   seed `discourse.slicer.org` via a web search before fetching the API
   directly.
+
+## v2.5: author update and MCP best practice
+
+- Added jumbojing as a skill author.
+- Added `.mcp.json` to `.gitignore`.
+- **MCP best practice:** Documented that `.mcp.json` should never be included
+  in a skill directory.  An MCP config bundled with a skill would silently
+  activate the connection for every user who installs it — an unexpected
+  behavior and a security risk.  The skill ships `mcp.json.sample` as a
+  template; users copy it to their own project directory to opt in.

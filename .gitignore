@@ -17,6 +17,9 @@ build/
 .venv/
 venv/
 
+# MCP config (local runtime, not part of the skill)
+.mcp.json
+
 # OS files
 .DS_Store
 Thumbs.db

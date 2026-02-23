@@ -8,8 +8,8 @@ description: >
   DICOM workflows, and the Slicer build system.
 compatibility: "Requires git and bash"
 metadata:
-  version: "2.4"
-  author: mhalle, pieper
+  version: "2.5"
+  author: mhalle, pieper, jumbojing
   repository: https://github.com/mhalle/slicer-skill
   release_url: https://github.com/mhalle/slicer-skill/releases/latest
 ---
