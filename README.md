@@ -40,7 +40,7 @@ git clone https://github.com/mhalle/slicer-skill ~/.claude/skills/slicer-skill
 ```
 
 Either way, Claude Code automatically reads `SKILL.md` files from
-`~/.claude/skills/`.  The skill will be available in all sessions without
+`~/.claude/skills/slicer-skill/`.  The skill will be available in all sessions without
 additional configuration.  The agent will run `scripts/setup.sh` automatically
 when it needs the local repositories.
 
