@@ -8,7 +8,7 @@ description: >
   DICOM workflows, and the Slicer build system.
 compatibility: "Requires git and bash"
 metadata:
-  version: "2.0"
+  version: "2.1"
 ---
 
 # Slicer Skill
