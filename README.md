@@ -15,19 +15,23 @@ to fetch the required repositories when needed.
 
 ### Claude.ai
 
-Download the `.skill` file from the
-[latest release](https://github.com/mhalle/slicer-skill/releases/latest/download/slicer-skill.skill)
-and add it to Claude.ai.  See
-[Using Skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude)
-for instructions.
+Download the
+[latest `.skill` file](https://github.com/mhalle/slicer-skill/releases/latest/download/slicer-skill.skill),
+then go to **Settings > Capabilities > Skills** and click **Upload skill**.
+See [Using Skills in Claude](https://support.claude.com/en/articles/12512180-using-skills-in-claude)
+for details.
 
 ### Claude Code
 
-**Option A — Download the `.skill` file (recommended):**
+**Option A — Download and unzip (recommended):**
 
-Download the latest release from the
-[latest release](https://github.com/mhalle/slicer-skill/releases/latest/download/slicer-skill.skill)
-and open the `.skill` file.  Claude Code will prompt you to install it.
+Download the
+[latest `.skill` file](https://github.com/mhalle/slicer-skill/releases/latest/download/slicer-skill.skill)
+and unzip it into your skills directory:
+
+```sh
+unzip slicer-skill.skill -d ~/.claude/skills/
+```
 
 **Option B — Clone the repository:**
 
@@ -35,16 +39,19 @@ and open the `.skill` file.  Claude Code will prompt you to install it.
 git clone https://github.com/mhalle/slicer-skill ~/.claude/skills/slicer-skill
 ```
 
-Claude Code automatically reads `SKILL.md` files from `~/.claude/skills/`.
-The skill will be available in all sessions without additional configuration.
-The agent will run `scripts/setup.sh` automatically when it needs the local
-repositories.
+Either way, Claude Code automatically reads `SKILL.md` files from
+`~/.claude/skills/`.  The skill will be available in all sessions without
+additional configuration.  The agent will run `scripts/setup.sh` automatically
+when it needs the local repositories.
 
 You can also add the skill to a single session with `--add-dir`:
 
 ```sh
 claude --add-dir /path/to/slicer-skill
 ```
+
+See [Extend Claude with skills](https://code.claude.com/docs/en/skills) for
+full documentation on skill installation and configuration.
 
 ### Other agents
 
