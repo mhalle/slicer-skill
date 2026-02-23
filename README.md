@@ -91,6 +91,11 @@ To stop the server from within Slicer: `mcpLogic.stop()`
 
 ### Related projects
 
+* **[slicerSkill](https://github.com/jumbojing/slicerSkill)** — a cloud-only
+  adaptation of this skill by @jumbojing.  It replaces local repository clones
+  with web-search directives (GitHub code search, ReadTheDocs, Doxygen), making
+  it zero-setup at the cost of requiring network access.  Designed for
+  OpenCode / Gemini workflows.
 * **[mcp-slicer](https://github.com/zhaoyouj/mcp-slicer)** — a standalone
   MCP server for 3D Slicer by @zhaoyouj, installable via `pip` / `uvx`.  It
   uses Slicer's built-in WebServer API as a bridge and can be launched outside
