@@ -6,10 +6,12 @@ description: >
   graphs, VTK/ITK pipelines, Slicer Python scripting, C++ module development,
   extension development, Qt-based module UI, segmentation, volume rendering,
   DICOM workflows, and the Slicer build system.
-compatibility: "Requires git and bash"
 metadata:
-  version: "2.5"
-  author: mhalle, pieper, jumbojing
+  version: "2.6"
+  author:
+    - mhalle
+    - pieper
+    - jumbojing
   repository: https://github.com/mhalle/slicer-skill
   release_url: https://github.com/mhalle/slicer-skill/releases/latest
 ---
