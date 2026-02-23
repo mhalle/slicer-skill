@@ -1,8 +1,6 @@
-# Ignore directories created by setup.sh
+# Ignore directories created by scripts/setup.sh
 slicer-source
 slicer-extensions
-slicer-dependencies
-slicer-discourse
 
 # Setup timestamp
 .setup-stamp.json

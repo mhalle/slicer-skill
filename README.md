@@ -9,13 +9,12 @@ resources are available for search.
 
 1. Read `SKILL.md` for detailed information about the expected workflow and data
    sources.
-2. Run the helper script to fetch the required repositories:
+2. Run the setup script to fetch the required repositories:
    ```sh
-   chmod +x setup.sh
-   ./setup.sh
+   scripts/setup.sh
    ```
 3. Use the resulting local copies when answering questions by searching for
-   code, files, and community discussions across the cloned repositories.
+   code and files across the cloned repositories.
 
 ## Using the skill from other projects
 
@@ -41,16 +40,14 @@ code, extensions, discourse archives, and dependency repositories.
 **Important:** All slicer-skill data lives in that single shared directory.
 Do NOT clone repositories into this project directory.
 
-- If the repos are not yet set up, run `setup.sh` **from within the slicer-skill
-  directory**:
+- If the repos are not yet set up, run `scripts/setup.sh` **from within the
+  slicer-skill directory**:
   ```sh
-  cd /path/to/slicer-skill && ./setup.sh
+  cd /path/to/slicer-skill && scripts/setup.sh
   ```
 - All searches should target paths under `/path/to/slicer-skill/`:
   - `/path/to/slicer-skill/slicer-source/`
   - `/path/to/slicer-skill/slicer-extensions/`
-  - `/path/to/slicer-skill/slicer-discourse/`
-  - `/path/to/slicer-skill/slicer-dependencies/`
 ````
 
 ### Claude Code
