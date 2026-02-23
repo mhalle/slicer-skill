@@ -1,14 +1,33 @@
 #!/usr/bin/env bash
 # setup.sh — clone Slicer source and ExtensionsIndex for local search
+#
+# Usage: setup.sh [--force] [CACHE_DIR]
+#
+# CACHE_DIR defaults to ~/.cache/slicer-skill but can be overridden via the
+# first non-flag argument or the SLICER_SKILL_CACHE_DIR environment variable.
+# Use a custom directory when ~/.cache is not writable (e.g. sandboxed
+# environments):
+#
+#   setup.sh /tmp/slicer-skill-${USER}
+#
 set -euo pipefail
 
-CACHE_DIR="${HOME}/.cache/slicer-skill"
+FORCE=0
+CUSTOM_DIR=""
+for arg in "$@"; do
+    case "$arg" in
+        --force) FORCE=1 ;;
+        *)       CUSTOM_DIR="$arg" ;;
+    esac
+done
+
+CACHE_DIR="${CUSTOM_DIR:-${SLICER_SKILL_CACHE_DIR:-${HOME}/.cache/slicer-skill}}"
 REPO_DIR="${CACHE_DIR}/repositories"
 STAMP_FILE="${CACHE_DIR}/.setup-stamp.json"
 MAX_AGE=86400  # 24 hours
 
 # Skip if stamp is fresh (pass --force to bypass)
-if [ "${1:-}" != "--force" ] && [ -f "$STAMP_FILE" ]; then
+if [ "$FORCE" -eq 0 ] && [ -f "$STAMP_FILE" ]; then
     stamp=$(perl -ne 'print $1 if /"epoch"\s*:\s*(\d+)/' "$STAMP_FILE" 2>/dev/null || echo 0)
     age=$(( $(date +%s) - stamp ))
     if [ "$age" -lt "$MAX_AGE" ]; then

@@ -32,6 +32,23 @@ The script shallow-clones both repos and writes a stamp file so that
 subsequent runs skip if the stamp is less than 24 hours old.  Pass `--force`
 to bypass the age check.
 
+The cache directory can be overridden when `~/.cache` is not writable
+(e.g. sandboxed environments):
+
+```sh
+# Via argument
+scripts/setup.sh /tmp/slicer-skill-${USER}
+
+# Via environment variable
+export SLICER_SKILL_CACHE_DIR=/tmp/slicer-skill-${USER}
+scripts/setup.sh
+```
+
+Both `--force` and a custom directory can be combined in any order.
+When a custom directory is used, all path references below should be read
+relative to `<CACHE_DIR>/repositories/` instead of
+`~/.cache/slicer-skill/repositories/`.
+
 ---
 
 ## Data Sources
