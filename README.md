@@ -16,50 +16,55 @@ resources are available for search.
 3. Use the resulting local copies when answering questions by searching for
    code and files across the cloned repositories.
 
-## Using the skill from other projects
-
-The slicer-skill directory is intended to be a **shared, standalone resource** that
-multiple projects can reference.  You should not clone Slicer repositories into your
-own project directory.
-
-To point your AI agent at the skill, add a section like the following to your
-project's configuration file (e.g. `CLAUDE.md`, `AGENTS.md`, or equivalent).
-Replace `/path/to/slicer-skill` with the absolute path where you cloned this
-repository:
-
-````markdown
-## Slicer Programming Reference
-
-For help answering 3D Slicer programming questions, use the slicer skill located at:
-
-    /path/to/slicer-skill
-
-That directory contains `SKILL.md` with instructions for searching Slicer source
-code, extensions, and community discussions.
-
-**Important:** Do NOT clone repositories into your project directory.
-
-- If the repos are not yet set up, run `scripts/setup.sh` from the
-  slicer-skill directory:
-  ```sh
-  /path/to/slicer-skill/scripts/setup.sh
-  ```
-- Repositories are cached in `~/.cache/slicer-skill/repositories/`:
-  - `~/.cache/slicer-skill/repositories/slicer-source/`
-  - `~/.cache/slicer-skill/repositories/slicer-extensions/`
-````
+## Installation
 
 ### Claude Code
 
-When using [Claude Code](https://docs.anthropic.com/en/docs/claude-code), you can
-also add the slicer-skill directory to your session with the `--add-dir` flag:
+Clone this repository into your Claude Code skills directory:
+
+```sh
+git clone https://github.com/pieper/slicer-skill ~/.claude/skills/slicer-skill
+```
+
+Claude Code automatically reads `SKILL.md` files from `~/.claude/skills/`.
+The skill will be available in all sessions without additional configuration.
+
+Then run setup to fetch the Slicer repositories:
+
+```sh
+~/.claude/skills/slicer-skill/scripts/setup.sh
+```
+
+Alternatively, you can add the skill to a single session with `--add-dir`:
 
 ```sh
 claude --add-dir /path/to/slicer-skill
 ```
 
-This makes the skill and all its data available for searching without copying
-anything into your project.
+### Other agents
+
+Most AI coding agents that support the SKILLS.md convention (Codex, Cursor,
+Windsurf, etc.) can use this skill by pointing them at the cloned directory.
+The typical approach is to add a reference to your project's agent
+configuration file (e.g. `AGENTS.md`, `CLAUDE.md`, or equivalent):
+
+````markdown
+## Slicer Programming Reference
+
+For help answering 3D Slicer programming questions, use the slicer skill
+located at:
+
+    /path/to/slicer-skill
+
+That directory contains `SKILL.md` with instructions for searching Slicer
+source code, extensions, and community discussions.
+
+- If the repos are not yet set up, run:
+  ```sh
+  /path/to/slicer-skill/scripts/setup.sh
+  ```
+- Repositories are cached in `~/.cache/slicer-skill/repositories/`
+````
 
 ## MCP Server
 
