@@ -88,7 +88,7 @@ Well-known extensions that demonstrate common patterns:
 
 ### 3. Discourse (API)
 
-Search the Slicer community forum via the Discourse API:
+Search the Slicer community forum via the Discourse search API:
 
 ```
 https://discourse.slicer.org/search.json?q=<query>
@@ -97,6 +97,27 @@ https://discourse.slicer.org/search.json?q=<query>
 Use this when source-code search is insufficient — forum threads often explain
 *why* things work a certain way, not just *how*.  Results include topic titles,
 excerpts, and links to full discussions.
+
+**Query filters** — append these to the search term:
+
+| Filter | Example | Effect |
+|--------|---------|--------|
+| `category:` | `segmentation category:support` | Restrict to a category (`support`, `dev`, `announcements`, `community`) |
+| `status:solved` | `volume rendering status:solved` | Only topics with an accepted answer |
+| `@username` | `transforms @lassoan` | Posts by a specific user |
+| `tags:` | `segmentation tags:python` | Filter by topic tag |
+| `order:latest` | `DICOM order:latest` | Sort by most recent |
+| `after:` / `before:` | `arrayFromVolume after:2024-01-01` | Date range filter |
+| `in:first` | `pip_install in:first` | Search only opening posts (skip replies) |
+
+Paginate with `&page=2`, `&page=3`, etc. (50 results per page).  The response
+field `grouped_search_result.more_full_page_results` indicates whether more
+pages exist.
+
+**Tip:** Combine filters for precise results, e.g.:
+```
+https://discourse.slicer.org/search.json?q=segment%20editor%20category:support%20status:solved%20order:latest
+```
 
 ### 4. Dependencies (SuperBuild + web)
 
