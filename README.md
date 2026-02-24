@@ -56,6 +56,20 @@ claude --add-dir /path/to/slicer-skill
 See [Extend Claude with skills](https://code.claude.com/docs/en/skills) for
 full documentation on skill installation and configuration.
 
+### Network access
+
+This skill works best with access to web APIs (Discourse forum search,
+GitHub, ReadTheDocs).  Some environments sandbox network access by default.
+
+In **Claude.ai**, go to **Settings > Capabilities** and either add specific
+domains to the allowlist (e.g. `slicer.org`, `discourse.slicer.org`,
+`github.com`, `slicer.readthedocs.io`) or enable access to all domains.
+
+Opening up network access allows agents to use remote APIs but may have
+security implications — the agent can reach any allowed domain on your behalf.
+For maximum functionality with minimal exposure, allowlist only the domains
+listed above.
+
 ### Other agents
 
 Most AI coding agents that support the SKILLS.md convention (Codex, Cursor,

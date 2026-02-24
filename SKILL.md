@@ -149,6 +149,17 @@ succeed.  The recommended workflow is: seed with web search, then switch to
 the `search.json` API for targeted queries — it supports filters, date ranges,
 and pagination that web search does not.
 
+If `web_fetch` is unavailable or blocked, use `curl` via the Bash tool as a
+fallback for any web API:
+
+```sh
+curl -s 'https://discourse.slicer.org/search.json?q=segment%20editor' | python3 -m json.tool
+```
+
+This approach works for the Discourse API, GitHub API, ReadTheDocs, and any
+other HTTP endpoint.  Pipe through `python3 -m json.tool` or `jq` to format
+JSON responses.
+
 **Query filters** — append these to the search term:
 
 | Filter | Example | Effect |
