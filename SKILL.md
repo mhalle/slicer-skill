@@ -7,7 +7,7 @@ description: >
   extension development, Qt-based module UI, segmentation, volume rendering,
   DICOM workflows, and the Slicer build system.
 metadata:
-  version: "2.6"
+  version: "2.7"
   author:
     - mhalle
     - pieper
